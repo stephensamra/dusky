@@ -1,5 +1,7 @@
 # dusky
 
+[![Docker](https://img.shields.io/badge/Docker-stephensamra%2Fdusky-blue)](https://hub.docker.com/r/stephensamra/dusky)
+
 Provide `dusky` with a light and dark wallpaper, and it will create a dynamic wallpaper for macOS that changes with the system appearance.
 
 ## Usage
