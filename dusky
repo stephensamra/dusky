@@ -9,10 +9,10 @@ fail_with_error() {
   local message=$1
   local show_usage=$2
 
-  echo "[error] $message" >&2
+  echo "[error] $message"
 
   if [ $show_usage ]; then
-    echo "Usage: dusky [light image] [dark image]" >&2
+    echo "Usage: dusky [light image] [dark image]"
   fi
 
   exit 1
@@ -34,7 +34,7 @@ get_filename() {
 validate_file_exists() {
   local filename=$1
 
-  if [ ! -f $filename ]; then
+  if [ ! -f "/images/$filename" ]; then
     fail_with_error "$filename not found." false
   fi
 }
@@ -58,12 +58,12 @@ add_metadata() {
   # XMP file to a temporary file with the correct name.
   local basename=$(get_filename $filename)
   local xmp_filename="$basename.xmp"
-  cp "metadata.xmp" "$xmp_filename"
+  cp "metadata.xmp" "/images/$xmp_filename"
 
-  exiv2 -i X in $filename
+  exiv2 -i X in "/images/$filename"
 
   # Remove the temporary XMP file.
-  rm $xmp_filename
+  rm "/images/$xmp_filename"
 }
 
 # Combines two images into a single HEIC file.
@@ -78,7 +78,7 @@ generate_heic() {
     heif_command="heif-enc -L"
   fi
 
-  $heif_command $light_image $dark_image -o "Wallpaper.heic"
+  $heif_command "/images/$light_image" "/images/$dark_image" -o "/images/Wallpaper.heic"
 }
 
 #######################################

@@ -11,13 +11,13 @@ Provide `dusky` with a light and dark wallpaper, and it will create a dynamic wa
 3. Run `dusky` in the directory with the following command (requires Docker):
 
 ```bash
-docker run --rm -v $PWD:/dusky stephensamra/dusky
+docker run --rm -v $PWD:/images stephensamra/dusky
 ```
 
 If your files are in JPEG format, or you have named your wallpaper files differently, you can specify the names of the files:
 
 ```bash
-docker run --rm -v $PWD:/dusky stephensamra/dusky light_wallpaper.jpg dark_wallpaper.jpg
+docker run --rm -v $PWD:/images stephensamra/dusky light_wallpaper.jpg dark_wallpaper.jpg
 ```
 
 4. The dynamic wallpaper will be saved as `Wallpaper.heic` in the directory.
