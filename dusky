@@ -1,0 +1,130 @@
+#!/bin/sh
+
+#######################################
+# functions                           #
+#######################################
+
+# Prints an error message and exits the script, optionally showing usage.
+fail_with_error() {
+  local message=$1
+  local show_usage=$2
+
+  echo "[error] $message" >&2
+
+  if [ $show_usage ]; then
+    echo "Usage: dusky [light image] [dark image]" >&2
+  fi
+
+  exit 1
+}
+
+# Returns the extension of a file in lowercase.
+get_file_extension() {
+  local filename=$1
+  echo "${filename##*.}" | tr '[:upper:]' '[:lower:]'
+}
+
+# Returns the filename without the extension.
+get_filename() {
+  local filename=$1
+  echo "${filename%.*}"
+}
+
+# Validates that a file exists.
+validate_file_exists() {
+  local filename=$1
+
+  if [ ! -f $filename ]; then
+    fail_with_error "$filename not found." false
+  fi
+}
+
+# Validates that a file has a png/jpg/jpeg extension.
+validate_file_extension() {
+  local filename=$1
+  local extension=$(get_file_extension $filename)
+
+  if [ $extension != "png" ] && [ $extension != "jpg" ] && [ $extension != "jpeg" ]; then
+    fail_with_error "$filename must be a PNG or JPEG image." false
+  fi
+}
+
+# Adds the necessary XMP data to an image.
+add_metadata() {
+  local filename=$1
+
+  # To attach the XMP to the first image, the .xmp file must
+  # have the same basename as the image file. We'll copy the
+  # XMP file to a temporary file with the correct name.
+  local basename=$(get_filename $filename)
+  local xmp_filename="$basename.xmp"
+  cp "metadata.xmp" "$xmp_filename"
+
+  exiv2 -i X in $filename
+
+  # Remove the temporary XMP file.
+  rm $xmp_filename
+}
+
+# Combines two images into a single HEIC file.
+generate_heic() {
+  local light_image=$1
+  local light_image_extension=$(get_file_extension $light_image)
+  local dark_image=$2
+  local dark_image_extension=$(get_file_extension $dark_image)
+  local heif_command="heif-enc"
+
+  if [ $light_image_extension == "png" ] || [ $dark_image_extension == "png" ]; then
+    heif_command="heif-enc -L"
+  fi
+
+  $heif_command $light_image $dark_image -o "Wallpaper.heic"
+}
+
+#######################################
+# start                               #
+#######################################
+
+echo
+echo "     _           _          "
+echo "    | |         | |         "
+echo "  __| |_   _ ___| | ___   _ "
+echo " / _\` | | | / __| |/ / | | |"
+echo "| (_| | |_| \__ \   <| |_| |"
+echo " \__,_|\__,_|___/_|\_\\__, |"
+echo "                       __/ |"
+echo "                      |___/ "
+echo
+
+ARG_COUNT=$#
+
+LIGHT_IMAGE="light.png"
+DARK_IMAGE="dark.png"
+
+if [ $ARG_COUNT -eq 0 ]; then
+  echo "No arguments, using default images."
+elif [ $ARG_COUNT -eq 1 ]; then
+  LIGHT_IMAGE=$1
+elif [ $ARG_COUNT -eq 2 ]; then
+  LIGHT_IMAGE=$1
+  DARK_IMAGE=$2
+else
+  fail_with_error "Invalid number of arguments." true
+fi
+
+echo "Light image: $LIGHT_IMAGE"
+echo "Dark image: $DARK_IMAGE"
+
+validate_file_exists $LIGHT_IMAGE
+validate_file_exists $DARK_IMAGE
+
+validate_file_extension $LIGHT_IMAGE
+validate_file_extension $DARK_IMAGE
+
+echo "Adding metadata..."
+add_metadata $LIGHT_IMAGE
+
+echo "Generating wallpaper file..."
+generate_heic $LIGHT_IMAGE $DARK_IMAGE
+
+echo "Done."
